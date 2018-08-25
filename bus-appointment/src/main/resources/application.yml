@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql:///appointment?useUnicode=true&characterEncoding=utf-8&serverTimeZone=UTC&useSSL=false&allowMultiQueries=true
+    driver-class-name: com.mysql.jdbc.Driver
+mybatis:
+  mapper-locations: classpath:mapper/*Mapper.xml
+  configuration:
+    jdbc-type-for-null: null
+    lazy-loading-enabled: true
+    map-underscore-to-camel-case: true

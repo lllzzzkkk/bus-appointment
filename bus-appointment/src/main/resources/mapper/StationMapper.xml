@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.attackme.busappointment.dao.StationMapper">
+    <resultMap id="StationResultMap" type="cn.attackme.busappointment.model.Station">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="description" property="description" />
+        <result column="disabled" property="disabled" />
+        <result column="area" property="area" />
+    </resultMap>
+
+    <select id="selectStationById" resultMap="StationResultMap">
+        SELECT * FROM station WHERE id=#{id};
+    </select>
+
+    <insert id="postStation" parameterType="cn.attackme.busappointment.model.Station">
+        INSERT INTO station VALUES (0,#{name},#{description},#{disabled},#{area});
+    </insert>
+
+    <update id="putStation" parameterType="cn.attackme.busappointment.model.Station">
+        UPDATE station SET `name` = #{name},description=#{description},disabled=#{disabled},area=#{area} WHERE id=#{id};
+    </update>
+
+    <select id="getStations" resultMap="StationResultMap">
+        SELECT * FROM station
+    </select>
+
+    <select id="getStationsByArea" parameterType="Boolean" resultMap="StationResultMap">
+        SELECT * FROM station WHERE area=#{area}
+    </select>
+</mapper>

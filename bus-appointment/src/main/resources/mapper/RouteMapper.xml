@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.attackme.busappointment.dao.RouteMapper">
+    <resultMap id="RouteResultMap" type="cn.attackme.busappointment.model.Routeext">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="disabled" property="disabled" />
+        <result column="direction" property="direction" />
+        <collection property="stationList" ofType="cn.attackme.busappointment.model.Station">
+            <id column="sid" property="id"></id>
+            <result column="sname" property="name"></result>
+            <result column="sdescription" property="description" />
+            <result column="sdisabled" property="disabled" />
+            <result column="sarea" property="area" />
+        </collection>
+    </resultMap>
+
+
+    <resultMap id="RouteResultMap2" type="cn.attackme.busappointment.model.Routeext">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="disabled" property="disabled" />
+        <result column="direction" property="direction" />
+        <collection property="stationList" column="id" fetchType="eager" javaType="ArrayList" select="getStations" ofType="cn.attackme.busappointment.model.Station">
+
+        </collection>
+    </resultMap>
+    <resultMap id="StationResultMap" type="cn.attackme.busappointment.model.Station">
+        <id column="sid" property="id"></id>
+        <result column="sname" property="name"></result>
+        <result column="sdescription" property="description" />
+        <result column="sdisabled" property="disabled" />
+        <result column="sarea" property="area" />
+    </resultMap>
+
+    <select id="getStations"  resultMap="StationResultMap">
+        SELECT
+            station.id AS sid,
+            station.`name` AS sname,
+            station.description AS sdescription ,
+            station.disabled AS sdisabled,
+            station.area AS sarea
+        FROM station
+        WHERE station.id
+            in
+            (
+                SELECT station_id
+                from route_station
+                WHERE route_id=#{id}
+                ORDER BY order_index ASC
+            );
+    </select>
+
+
+
+    <select id="getRouteById" resultMap="RouteResultMap">
+        SELECT route.id AS id,
+                route.`name`AS `name`,
+                route.disabled AS disabled,
+                route.direction as direction,
+                station.id AS sid,
+                station.`name` AS sname,
+                station.description AS sdescription,
+                station.disabled AS sdisabled,
+                station.area AS sarea
+        FROM route INNER JOIN station
+        WHERE station.id
+          in
+          (
+            SELECT station_id
+            from route_station
+            WHERE route_id=1
+            ORDER BY order_index ASC
+          )AND route.id=1;
+    </select>
+
+
+    <insert id="postRoute" parameterType="cn.attackme.busappointment.model.Route" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO route VALUES(0,#{name},#{disabled},#{direction});
+    </insert>
+
+
+
+    <insert id="postStationList" parameterType="map">
+        INSERT INTO route_station(route_id,station_id,order_index) VALUES
+        <foreach collection="stationsIds" item="stationId" index="index" separator=",">
+            (${routeId},#{stationId.id},#{index}+1)
+        </foreach>
+    </insert>
+
+    <update id="putRoute" parameterType="cn.attackme.busappointment.model.Route" useGeneratedKeys="true" keyProperty="id">
+        UPDATE route SET `name`=#{name},disabled=#{disabled},direction=#{direction} WHERE id=#{id};
+    </update>
+    <update id="putStationList" parameterType="map">
+
+        <foreach collection="stationIds" item="stationsId" index="index">
+            UPDATE route_station
+               SET
+                station_id=#{stationsId.id}
+            WHERE id=${routeId};
+        </foreach>
+
+    </update>
+
+    <select id="getRoutes" resultMap="RouteResultMap2">
+        SELECT DISTINCT  route.*
+
+        FROM route INNER JOIN route_station
+        WHERE route.id = route_id
+    </select>
+
+    <select id="getRoutesByDirection" resultMap="RouteResultMap2">
+       SELECT DISTINCT  route.*
+
+        FROM route INNER JOIN route_station
+        WHERE route.id = route_id AND route.direction = #{direction}
+    </select>
+
+    <select id="anoGetRoutesByDirection" parameterType="Boolean" resultMap="RouteResultMap">
+        SELECT route.id AS id,
+                route.`name`AS `name`,
+                route.disabled AS disabled,
+                route.direction as direction,
+                station.id AS sid,
+                station.`name` AS sname,
+                station.description AS sdescription,
+                station.disabled AS sdisabled,
+                station.area AS sarea
+            FROM route INNER JOIN station
+            WHERE station.id
+              in
+                (
+                    SELECT station_id
+                    from route_station
+                    WHERE route_id=route.id
+                    ORDER BY order_index ASC
+                )AND route.direction = #{direction}
+    </select>
+    <select id="anoGetRoutes" parameterType="Boolean" resultMap="RouteResultMap">
+        SELECT route.id AS id,
+                route.`name`AS `name`,
+                route.disabled AS disabled,
+                route.direction as direction,
+                station.id AS sid,
+                station.`name` AS sname,
+                station.description AS sdescription,
+                station.disabled AS sdisabled,
+                station.area AS sarea
+            FROM route INNER JOIN station
+            WHERE station.id
+              in
+              (
+                    SELECT station_id
+                    from route_station
+                    WHERE route_id=route.id
+                    ORDER BY order_index ASC
+                )
+    </select>
+</mapper>
